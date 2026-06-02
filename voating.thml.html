@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Online Voting System</title>
+    <style>
+        body{
+            font-family: Arial, sans-serif;
+            background: linear-gradient(to right, #4facfe, #00f2fe);
+            display:flex;
+            justify-content:center;
+            align-items:center;
+            height:100vh;
+            margin:0;
+        }
+        .container{
+            background:white;
+            padding:20px;
+            width:400px;
+            border-radius:10px;
+            box-shadow:0 0 10px rgba(0,0,0,0.2);
+        }
+        h2{
+            text-align:center;
+        }
+        input, button{
+            width:100%;
+            padding:10px;
+            margin:8px 0;
+            border-radius:5px;
+            border:1px solid #ccc;
+        }
+        button{
+            background:#4facfe;
+            color:white;
+            font-weight:bold;
+            cursor:pointer;
+        }
+        button:hover{
+            background:#00c6ff;
+        }
+        .hidden{
+            display:none;
+        }
+        .candidate{
+            display:flex;
+            justify-content:space-between;
+            margin:10px 0;
+        }
+        .result-box{
+            background:#f0f0f0;
+            padding:10px;
+            border-radius:5px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+
+    <!-- Registration -->
+    <div id="registerSection">
+        <h2>Register</h2>
+        <input type="text" id="regName" placeholder="Enter Name">
+        <input type="password" id="regPass" placeholder="Enter Password">
+        <button onclick="register()">Register</button>
+        <p>Already Registered? <button onclick="showLogin()">Login</button></p>
+    </div>
+
+    <!-- Login -->
+    <div id="loginSection" class="hidden">
+        <h2>Login</h2>
+        <input type="text" id="loginName" placeholder="Enter Name">
+        <input type="password" id="loginPass" placeholder="Enter Password">
+        <button onclick="login()">Login</button>
+    </div>
+
+    <!-- Voting -->
+    <div id="voteSection" class="hidden">
+        <h2>Cast Your Vote</h2>
+        <div class="candidate">
+            <span>BJP</span>
+            <button onclick="vote('A')">Vote</button>
+        </div>
+        <div class="candidate">
+            <span>AAP Party</span>
+            <button onclick="vote('B')">Vote</button>
+        </div>
+        <div class="candidate">
+            <span>U.K.D</span>
+            <button onclick="vote('C')">Vote</button>
+        </div>
+        <button onclick="showResults()">View Results</button>
+    </div>
+
+    <!-- Results -->
+    <div id="resultSection" class="hidden">
+        <h2>Voting Results</h2>
+        <div class="result-box" id="results"></div>
+        <button onclick="logout()">Logout</button>
+    </div>
+
+</div>
+
+<script>
+
+let users = JSON.parse(localStorage.getItem("users")) || [];
+let votes = JSON.parse(localStorage.getItem("votes")) || {A:0, B:0, C:0};
+let currentUser = null;
+
+function saveData(){
+    localStorage.setItem("users", JSON.stringify(users));
+    localStorage.setItem("votes", JSON.stringify(votes));
+}
+
+function register(){
+    let name = document.getElementById("regName").value;
+    let pass = document.getElementById("regPass").value;
+
+    if(name === "" || pass === ""){
+        alert("Please fill all fields");
+        return;
+    }
+
+    let userExists = users.find(u => u.name === name);
+    if(userExists){
+        alert("User already exists");
+        return;
+    }
+
+    users.push({name, pass, voted:false});
+    saveData();
+    alert("Registration Successful!");
+    showLogin();
+}
+
+function showLogin(){
+    document.getElementById("registerSection").classList.add("hidden");
+    document.getElementById("loginSection").classList.remove("hidden");
+}
+
+function login(){
+    let name = document.getElementById("loginName").value;
+    let pass = document.getElementById("loginPass").value;
+
+    let user = users.find(u => u.name === name && u.pass === pass);
+    if(!user){
+        alert("Invalid Credentials");
+        return;
+    }
+
+    currentUser = user;
+    document.getElementById("loginSection").classList.add("hidden");
+    document.getElementById("voteSection").classList.remove("hidden");
+
+    if(user.voted){
+        alert("You have already voted!");
+        showResults();
+    }
+}
+
+function vote(candidate){
+    if(currentUser.voted){
+        alert("You already voted!");
+        return;
+    }
+
+    votes[candidate]++;
+    currentUser.voted = true;
+    saveData();
+
+    alert("Vote Casted Successfully!");
+    showResults();
+}
+
+function showResults(){
+    document.getElementById("voteSection").classList.add("hidden");
+    document.getElementById("resultSection").classList.remove("hidden");
+
+    document.getElementById("results").innerHTML = `
+        BJP  : ${votes.A} votes <br>
+        AAP Party : ${votes.B} votes <br>
+        U.K.D : ${votes.C} votes
+    `;
+}
+
+function logout(){
+    currentUser = null;
+    document.getElementById("resultSection").classList.add("hidden");
+    document.getElementById("registerSection").classList.remove("hidden");
+}
+
+</script>
+
+</body>
+</html>
